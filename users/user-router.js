@@ -32,6 +32,17 @@ router.get('/:id', (req, res) => {
   });
 });
 
+router.get('/:id/posts', (req, res) => {
+  db('posts as p')
+    .join('users as u', 'u.id', '=', 'p.user_id') // doesn't specify specify columns so it gets all info including username
+    .where({ user_id: req.params.id })
+    .select('p.id', 'p.contents as Wisdom', 'u.username as Philosopher')
+    .then(posts => { // user_id because it's name of foreign key connecting tables
+      res.status(200).json(posts)
+    })
+  .catch(err => res.status(500).json(err))
+})
+
 router.post('/', (req, res) => {
   const userData = req.body;
 
