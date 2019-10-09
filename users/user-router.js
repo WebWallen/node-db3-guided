@@ -1,11 +1,12 @@
 const express = require('express');
 
 const db = require('../data/db-config.js');
+const Users = require('./users-model');
 
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  db('users')
+  Users.find()
   .then(users => {
     res.json(users);
   })
@@ -15,12 +16,8 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:id', (req, res) => {
-  const { id } = req.params;
-
-  db('users').where({ id })
-  .then(users => {
-    const user = users[0];
-
+  Users.findById(req.params.id)
+  .then(user => {
     if (user) {
       res.json(user);
     } else {
@@ -33,10 +30,7 @@ router.get('/:id', (req, res) => {
 });
 
 router.get('/:id/posts', (req, res) => {
-  db('posts as p')
-    .join('users as u', 'u.id', '=', 'p.user_id') // doesn't specify specify columns so it gets all info including username
-    .where({ user_id: req.params.id })
-    .select('p.id', 'p.contents as Wisdom', 'u.username as Philosopher')
+  Users.findUserPosts(req.params.id)
     .then(posts => { // user_id because it's name of foreign key connecting tables
       res.status(200).json(posts)
     })
@@ -44,9 +38,7 @@ router.get('/:id/posts', (req, res) => {
 })
 
 router.post('/', (req, res) => {
-  const userData = req.body;
-
-  db('users').insert(userData)
+  Users.add(req.body)
   .then(ids => {
     res.status(201).json({ created: ids[0] });
   })
